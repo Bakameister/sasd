@@ -13,6 +13,9 @@
     "dotenv": "^16.3.1",
     "mongoose": "^8.12.1",
     "nodemon": "^3.0.1",
-    "pdfkit": "^0.14.0"
+    "@napi-rs/canvas": "^0.1.44",
+    "pdfkit": "^0.14.0",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.33.2"
   }
 }
