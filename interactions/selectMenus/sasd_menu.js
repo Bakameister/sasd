@@ -169,13 +169,22 @@ export async function execute(interaction, client) {
                                     .setStyle(ButtonStyle.Success),
                                 new ButtonBuilder()
                                     .setCustomId('denegar_denuncia')
-                                    .setLabel('Denegar denuncia')
+                                    .setLabel('Rechazar denuncia')
                                     .setStyle(ButtonStyle.Danger)
                             );
 
                           // Obtener y formatear la hora actual en formato de 24 horas
                         const now = new Date();
                         const time = now.toLocaleTimeString('es-ES', { hour12: false }); // Usamos 'es-ES' para el formato español, pero puedes ajustarlo
+
+                         //**AQUÍ VA EL CANAL DE LOGS NUEVO**
+                         const extraLogsChannel = interaction.guild.channels.cache.get('1344689016091705465'); // Reemplaza con la ID del nuevo canal de logs
+
+                         if (!extraLogsChannel) {
+                             console.error('❌ No se encontró el canal de logs resumido.');
+                             return;
+                         }
+
 
                             // Enviar el mensaje con los botones al canal de logs
                             const logsChannel = interaction.guild.channels.cache.get('1355491058737479771'); // Reemplaza con la ID real
@@ -184,12 +193,19 @@ export async function execute(interaction, client) {
                                 console.error('❌ No se encontró el canal de logs.');
                                 return;
                             }
+                            
 
-                            // Si el canal existe, envía el mensaje con el PDF
-                            const mensajeLogs = await logsChannel.send({
-                                content: `‎\n[${time}] [SDOCS]‎  Nuevo documento registrado en el sistema de trámites de denuncias.\n[${time}] [SDOCS]‎  Denuncia realizada por **${message.member.displayName}**.\`\`\`prolog\n⏳ DENUNCIA EN ESPERA\`\`\``,
+                        
+                             // Enviar mensaje al canal de logs principal
+                             const mensajeLogs = await logsChannel.send({
+                                content: `‎\n[${time}] [SDOCS]  Nueva denuncia realizada por **${message.member.displayName}**.\n[15:52:08] [SDOCS]‎  Se ha generado y registrado un nuevo documento en el sistema de trámites de denuncias.\n[${time}] [SDOCS]  \`C:/SASD/Denuncias/Activas/2025/${message.member.displayName}/\`\n\`\`\`prolog\n⏳ DENUNCIA EN ESPERA\`\`\``,
                                 files: [pdfPath],
                                 components: [row]
+                            });
+
+                            // Enviar mensaje al canal de logs resumido
+                            await extraLogsChannel.send({
+                                content: `[${time}] Nueva denuncia creada.`,
                             });
 
                             // Manejo de los botones
@@ -199,11 +215,31 @@ export async function execute(interaction, client) {
                                 if (interaction.message.id !== mensajeLogs.id) return; // Asegura que solo interactúa con el mensaje de logs correcto.
 
                                 if (interaction.customId === 'resolver_denuncia') {
-                                    await interaction.update({ content: `‎\n[${time}] [SDOCS]‎  El Sheriff ${interaction.user} se ha encargado de la denuncia.\n[${time}] [SDOCS]‎  El documento se ha archivado satisfactoriamente en la carpeta correspondiente.\`\`\`less\n✅ DENUNCIA RESUELTA\`\`\``, components: [] });
+                                  
+                                    
+                                    await interaction.update({
+                                        content: `‎\n[${time}] [SDOCS]  El Sheriff ${interaction.user} se ha encargado de la denuncia.\n[${time}] [SDOCS]  El documento se ha archivado satisfactoriamente en la carpeta correspondiente.\n[${time}] [SDOCS]  \`C:/SASD/Denuncias/Resueltas/2025/${message.member.displayName}/\`\n\`\`\`less\n✅ DENUNCIA RESUELTA\`\`\``,
+                                        components: []
+                                    });
+
+                                    // Envía mensaje al canal de logs resumido para resolución
+                                    await extraLogsChannel.send({
+                                        content: `[${time}] Denuncia resuelta.`,
+                                    });
                                 }
 
                                 if (interaction.customId === 'denegar_denuncia') {
-                                    await interaction.update({ content: `‎\n[${time}] [SDOCS]‎  El Sheriff ${interaction.user} se ha encargado de la denuncia.\n[${time}] [SDOCS]‎  El documento se ha mandado a la papelera de reciclaje para proceder a su eliminación.\`\`\`ml\n❌ DENUNCIA DENEGADA\`\`\``, components: [] });
+                                    await interaction.update({
+                                        content: `‎\n[${time}] [SDOCS]  El Sheriff ${interaction.user} se ha encargado de la denuncia.\n[${time}] [SDOCS]  El documento se ha movido a la papelera de reciclaje para proceder con su eliminación.\`\`\`ml\n❌ DENUNCIA RECHAZADA\`\`\``,
+                                        components: []
+                                    });
+                                   
+                                    setTimeout(() => interaction.message.delete().catch(console.error), 20000);
+
+                                    // Envía mensaje al canal de logs resumido para rechazo
+                                    await extraLogsChannel.send({
+                                        content: `[${time}] Denuncia rechazada.`,
+                                    });
                                 }
                             });
 
