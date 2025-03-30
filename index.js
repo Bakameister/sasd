@@ -6,6 +6,7 @@ import fs from 'fs';
 import path from 'path';
 import { initializeStorage, loadState } from './utils/storage.js';
 import { connectToDatabase } from './utils/database.js';
+import { setupMessageHandler } from './interactions/selectMenus/sasd_menu.js';
 
 // Configuración
 config();
@@ -27,6 +28,11 @@ const client = new Client({
     Partials.Reaction
   ]
 });
+
+// Inicializa las colecciones para modales
+client.modals = new Collection();
+client.modalSubmits = new Collection();
+
 
 // Variables globales iniciales
 global.postulacionesAbiertas = false;
@@ -115,7 +121,12 @@ async function updateStatusMessage(client) {
       
       // Actualizar el mensaje de estado cuando el bot esté listo
       await updateStatusMessage(client);
-    });
+    
+
+        
+      // Inicializa el message handler
+            setupMessageHandler(client); // Añade esta línea aquí
+        });
     
     // Iniciar sesión
     await client.login(process.env.TOKEN);
